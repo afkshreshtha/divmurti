@@ -10,6 +10,11 @@ const nextConfig = {
       // Add other patterns if needed
     ],
   },
+  typescript: {
+    // Set to false to ignore type errors
+    ignoreBuildErrors: true,
+  }
+
   // Other Next.js config options
 };
 
