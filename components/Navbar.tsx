@@ -24,7 +24,7 @@ export default function Navbar() {
           href="/" 
           className="text-2xl font-bold text-gray-800 tracking-wide hover:text-blue-600 transition-colors duration-200"
         >
-          <span className="text-blue-600">Jaipur Moorti</span>Bhandar
+          <span className="text-blue-600">JaipurMurti</span>Bhandar
         </Link>
 
         {/* Desktop Navigation */}
