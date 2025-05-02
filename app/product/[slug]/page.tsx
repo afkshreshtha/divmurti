@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { FaWhatsapp, FaArrowLeft, FaShare, FaHeart } from "react-icons/fa";
+import { FaWhatsapp, FaArrowLeft, FaShare } from "react-icons/fa";
 import { MdOutlineLocalShipping } from "react-icons/md";
 import { RiSecurePaymentLine } from "react-icons/ri";
 import Link from "next/link";
@@ -152,12 +152,7 @@ const ProductDetail = ({ product }) => {
                     % OFF
                   </div>
                 )}
-                <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm ${isWishlisted ? "text-red-500 bg-white/90" : "text-gray-400 bg-white/80 hover:text-red-500"}`}
-                >
-                  <FaHeart className="text-lg" />
-                </button>
+  
               </div>
 
               {/* Thumbnail Gallery - Modernized */}
@@ -194,9 +189,6 @@ const ProductDetail = ({ product }) => {
               <h1 className="text-3xl font-bold text-gray-900">
                 {displayProduct.name}
               </h1>
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
-                <FaShare className="text-lg" />
-              </button>
             </div>
 
             {/* Rating Badge - Modern */}

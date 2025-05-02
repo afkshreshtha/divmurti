@@ -6,7 +6,7 @@ export default function ShippingPolicy() {
   return (
     <>
       <Head>
-        <title>Shipping Policy | Spiritual Artifacts</title>
+        <title>Shipping Policy | Jaipurmurtibhandar</title>
         <meta name="description" content="Our shipping methods, timeframes, and procedures for premium spiritual artifacts" />
       </Head>
 

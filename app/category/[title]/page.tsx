@@ -1,34 +1,128 @@
 "use client";
 
 import { client } from "@/sanity.cli";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useParams } from "next/navigation";
-import { Search, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import {
+  Search,
+  Filter,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+} from "lucide-react";
 
 const CategoryDetailPage = () => {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const slug = params.title;
 
+  // Initialize state from URL
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter states
+  // Filter states initialized from URL
   const [materials, setMaterials] = useState([]);
   const [paintingStyles, setPaintingStyles] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [selectedPaintingStyles, setSelectedPaintingStyles] = useState([]);
-  const [sortBy, setSortBy] = useState("featured");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMaterials, setSelectedMaterials] = useState(
+    searchParams.get("materials")?.split(",") || []
+  );
+  const [selectedPaintingStyles, setSelectedPaintingStyles] = useState(
+    searchParams.get("styles")?.split(",") || []
+  );
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "featured");
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || ""
+  );
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("page")) || 1
+  );
+  const [priceRange, setPriceRange] = useState([
+    parseInt(searchParams.get("minPrice")) || 0,
+    parseInt(searchParams.get("maxPrice")) || 50000,
+  ]);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
+
+  const updateURL = useCallback(
+    (newParams) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Update all parameters
+      if (newParams.search !== undefined) {
+        if (newParams.search) {
+          params.set("search", newParams.search);
+        } else {
+          params.delete("search");
+        }
+      }
+
+      if (newParams.materials !== undefined) {
+        if (newParams.materials.length > 0) {
+          params.set("materials", newParams.materials.join(","));
+        } else {
+          params.delete("materials");
+        }
+      }
+
+      if (newParams.styles !== undefined) {
+        if (newParams.styles.length > 0) {
+          params.set("styles", newParams.styles.join(","));
+        } else {
+          params.delete("styles");
+        }
+      }
+
+      if (newParams.sort !== undefined) {
+        if (newParams.sort !== "featured") {
+          params.set("sort", newParams.sort);
+        } else {
+          params.delete("sort");
+        }
+      }
+
+      if (newParams.page !== undefined) {
+        if (newParams.page > 1) {
+          params.set("page", newParams.page);
+        } else {
+          params.delete("page");
+        }
+      }
+
+      if (newParams.minPrice !== undefined) {
+        if (newParams.minPrice > 0) {
+          params.set("minPrice", newParams.minPrice);
+        } else {
+          params.delete("minPrice");
+        }
+      }
+
+      if (newParams.maxPrice !== undefined) {
+        if (newParams.maxPrice < 50000) {
+          params.set("maxPrice", newParams.maxPrice);
+        } else {
+          params.delete("maxPrice");
+        }
+      }
+
+      // Push new URL without page reload
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router]
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,20 +155,20 @@ const CategoryDetailPage = () => {
               "mainImage": images[0].asset->url,
               featured,
               material->{title, slug},
-  dimensions {
-    length {
-      value,
-      unit->{title, symbol}
-    },
-    width {
-      value,
-      unit->{title, symbol}
-    },
-    height {
-      value,
-      unit->{title, symbol}
-    }
-  }
+              dimensions {
+                length {
+                  value,
+                  unit->{title, symbol}
+                },
+                width {
+                  value,
+                  unit->{title, symbol}
+                },
+                height {
+                  value,
+                  unit->{title, symbol}
+                }
+              }
             }
           `,
             { slug }
@@ -143,6 +237,12 @@ const CategoryDetailPage = () => {
       );
     }
 
+    // Price range filter
+    filtered = filtered.filter((p) => {
+      const price = parseFloat(p.price || p.actual_price || 0);
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
+
     // Sort products
     switch (sortBy) {
       case "price-low":
@@ -166,28 +266,60 @@ const CategoryDetailPage = () => {
 
     setFilteredProducts(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchQuery, selectedMaterials, selectedPaintingStyles, sortBy, products]);
+  }, [
+    searchQuery,
+    selectedMaterials,
+    selectedPaintingStyles,
+    sortBy,
+    products,
+    priceRange,
+  ]);
 
   // Pagination logic
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
   const toggleMaterial = (slugCurrent) => {
-    setSelectedMaterials((prev) =>
-      prev.includes(slugCurrent)
-        ? prev.filter((id) => id !== slugCurrent)
-        : [...prev, slugCurrent]
-    );
+    const newMaterials = selectedMaterials.includes(slugCurrent)
+      ? selectedMaterials.filter((id) => id !== slugCurrent)
+      : [...selectedMaterials, slugCurrent];
+
+    setSelectedMaterials(newMaterials);
+    updateURL({ materials: newMaterials, page: 1 });
   };
 
   const togglePaintingStyle = (style) => {
-    setSelectedPaintingStyles((prev) =>
-      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
-    );
+    const newStyles = selectedPaintingStyles.includes(style)
+      ? selectedPaintingStyles.filter((s) => s !== style)
+      : [...selectedPaintingStyles, style];
+
+    setSelectedPaintingStyles(newStyles);
+    updateURL({ styles: newStyles, page: 1 });
+  };
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    updateURL({ sort: value, page: 1 });
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    updateURL({ search: value, page: 1 });
+  };
+
+  const handlePriceChange = (min, max) => {
+    setPriceRange([min, max]);
+    updateURL({ minPrice: min, maxPrice: max, page: 1 });
+  };
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    updateURL({ page: pageNumber });
   };
 
   const resetFilters = () => {
@@ -195,8 +327,33 @@ const CategoryDetailPage = () => {
     setSelectedPaintingStyles([]);
     setSortBy("featured");
     setSearchQuery("");
+    setPriceRange([0, 50000]);
     setCurrentPage(1);
+    updateURL({
+      materials: [],
+      styles: [],
+      sort: "featured",
+      search: "",
+      minPrice: 0,
+      maxPrice: 50000,
+      page: 1,
+    });
   };
+
+  useEffect(() => {
+    // This ensures the URL is in sync when the page loads with filters
+    if (!isLoading) {
+      updateURL({
+        materials: selectedMaterials,
+        styles: selectedPaintingStyles,
+        sort: sortBy,
+        search: searchQuery,
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1],
+        page: currentPage,
+      });
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -253,15 +410,23 @@ const CategoryDetailPage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-2xl">
               <div className="flex items-center text-sm text-gray-600 mb-4">
-                <Link href="/" className="hover:text-primary transition flex items-center">
+                <Link
+                  href="/"
+                  className="hover:text-primary transition flex items-center"
+                >
                   <ChevronLeft className="w-4 h-4 mr-1" /> Home
                 </Link>
                 <span className="mx-2">/</span>
-                <Link href="/categories" className="hover:text-primary transition">
+                <Link
+                  href="/categories"
+                  className="hover:text-primary transition"
+                >
                   Categories
                 </Link>
                 <span className="mx-2">/</span>
-                <span className="text-primary font-medium">{category.title}</span>
+                <span className="text-primary font-medium">
+                  {category.title}
+                </span>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -299,7 +464,7 @@ const CategoryDetailPage = () => {
               type="text"
               placeholder="Search products..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-all"
             />
             {searchQuery && (
@@ -321,115 +486,201 @@ const CategoryDetailPage = () => {
           </button>
         </div>
 
-        {/* Mobile Filters */}
         {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden">
-            <div className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto transform transition-transform duration-300 ease-in-out">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Filters</h2>
-                  <button 
-                    onClick={() => setMobileFiltersOpen(false)}
-                    className="p-1 rounded-full hover:bg-gray-100"
+          <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+            <div className="h-full w-full pb-24">
+              {/* Header */}
+              <div className="px-4 py-4 flex justify-between items-center border-b border-gray-200 sticky top-0 bg-white z-10">
+                <h2 className="text-lg font-medium">Filters</h2>
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="p-1 rounded-full text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Filter Content */}
+              <div className="px-4">
+                {/* Sort Options */}
+                <div className="py-5 border-b border-gray-200">
+                  <h3 className="text-base font-medium mb-3">Sort By</h3>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-primary focus:border-primary"
                   >
-                    <X className="w-6 h-6" />
-                  </button>
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                  </select>
                 </div>
 
-                <div className="space-y-6">
-                  {/* Sort Options */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Sort By</h3>
-                    <div className="space-y-2">
-                      {[
-                        { value: "featured", label: "Featured" },
-                        { value: "price-low", label: "Price: Low to High" },
-                        { value: "price-high", label: "Price: High to Low" },
-                      ].map((option) => (
-                        <div key={option.value} className="flex items-center">
-                          <input
-                            id={`mobile-sort-${option.value}`}
-                            type="radio"
-                            checked={sortBy === option.value}
-                            onChange={() => setSortBy(option.value)}
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                          />
-                          <label
-                            htmlFor={`mobile-sort-${option.value}`}
-                            className="ml-3 text-gray-700"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
+                {/* Materials */}
+                <div className="py-5 border-b border-gray-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-base font-medium">Materials</h3>
+                    {selectedMaterials.length > 0 && (
+                      <button
+                        onClick={() => setSelectedMaterials([])}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {materials.map((material) => (
+                      <div
+                        key={material.slug.current}
+                        className="flex items-center"
+                      >
+                        <input
+                          id={`mobile-material-${material.slug.current}`}
+                          type="checkbox"
+                          checked={selectedMaterials.includes(
+                            material.slug.current
+                          )}
+                          onChange={() => toggleMaterial(material.slug.current)}
+                          className="h-4 w-4 text-primary border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor={`mobile-material-${material.slug.current}`}
+                          className="ml-3 text-sm text-gray-700"
+                        >
+                          {material.title}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Painting Style */}
+                <div className="py-5 border-b border-gray-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-base font-medium">Painting Style</h3>
+                    {selectedPaintingStyles.length > 0 && (
+                      <button
+                        onClick={() => setSelectedPaintingStyles([])}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {paintingStyles.map((style) => (
+                      <div key={style} className="flex items-center">
+                        <input
+                          id={`mobile-style-${style}`}
+                          type="checkbox"
+                          checked={selectedPaintingStyles.includes(style)}
+                          onChange={() => togglePaintingStyle(style)}
+                          className="h-4 w-4 text-primary border-gray-300 rounded"
+                        />
+                        <label
+                          htmlFor={`mobile-style-${style}`}
+                          className="ml-3 text-sm text-gray-700"
+                        >
+                          {style}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div className="py-5 border-b border-gray-200">
+                  <h3 className="text-base font-medium mb-4">Price Range</h3>
+                  <div className="mb-2 flex justify-between text-sm text-gray-600">
+                    <span>₹{priceRange[0].toLocaleString()}</span>
+                    <span>₹{priceRange[1].toLocaleString()}</span>
+                  </div>
+                  <div className="px-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="50000"
+                      step="1000"
+                      value={priceRange[0]}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          parseInt(e.target.value),
+                          priceRange[1]
+                        )
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="50000"
+                      step="1000"
+                      value={priceRange[1]}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          priceRange[0],
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-4"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-between gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-500 mb-1">
+                        Min
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={priceRange[1]}
+                        value={priceRange[0]}
+                        onChange={(e) =>
+                          handlePriceChange(
+                            parseInt(e.target.value),
+                            priceRange[1]
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-500 mb-1">
+                        Max
+                      </label>
+                      <input
+                        type="number"
+                        min={priceRange[0]}
+                        max="50000"
+                        value={priceRange[1]}
+                        onChange={(e) =>
+                          handlePriceChange(
+                            priceRange[0],
+                            parseInt(e.target.value)
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                      />
                     </div>
                   </div>
-
-                  {/* Material Filter */}
-                  {materials.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Material</h3>
-                      <div className="space-y-2">
-                        {materials.map((material) => (
-                          <div key={material.slug.current} className="flex items-center">
-                            <input
-                              id={`mobile-material-${material.slug.current}`}
-                              type="checkbox"
-                              checked={selectedMaterials.includes(material.slug.current)}
-                              onChange={() => toggleMaterial(material.slug.current)}
-                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor={`mobile-material-${material.slug.current}`}
-                              className="ml-3 text-gray-700"
-                            >
-                              {material.title}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Painting Style Filter */}
-                  {paintingStyles.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Painting Style</h3>
-                      <div className="space-y-2">
-                        {paintingStyles.map((style) => (
-                          <div key={style} className="flex items-center">
-                            <input
-                              id={`mobile-style-${style}`}
-                              type="checkbox"
-                              checked={selectedPaintingStyles.includes(style)}
-                              onChange={() => togglePaintingStyle(style)}
-                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            />
-                            <label
-                              htmlFor={`mobile-style-${style}`}
-                              className="ml-3 text-gray-700"
-                            >
-                              {style}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
+              </div>
 
-                <div className="mt-8 flex gap-3">
+              {/* Action Buttons - Fixed at Bottom */}
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+                <div className="flex flex-col space-y-3">
                   <button
                     onClick={resetFilters}
-                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
+                    className="w-full py-3 bg-amber-500 text-white font-medium rounded-md hover:bg-amber-600 transition-colors"
                   >
-                    Reset
+                    Reset all filters
                   </button>
                   <button
                     onClick={() => setMobileFiltersOpen(false)}
                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition"
                   >
-                    Apply
+                    Apply Filters
                   </button>
                 </div>
               </div>
@@ -439,22 +690,107 @@ const CategoryDetailPage = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Filters */}
-          <div className="hidden lg:block w-72 flex-shrink-0">
+          <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-8">
-              <h2 className="text-xl font-bold mb-6">Filters</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Filters</h2>
+                {(selectedMaterials.length > 0 ||
+                  selectedPaintingStyles.length > 0 ||
+                  sortBy !== "featured" ||
+                  priceRange[0] !== 0 ||
+                  priceRange[1] !== 50000) && (
+                  <button
+                    onClick={resetFilters}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Reset all
+                  </button>
+                )}
+              </div>
 
               {/* Sort Options */}
               <div className="mb-8">
                 <h3 className="text-lg font-medium mb-3">Sort By</h3>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => handleSortChange(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-primary focus:border-primary"
                 >
                   <option value="featured">Featured</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
                 </select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div className="mb-8">
+                <h3 className="text-lg font-medium mb-3">Price Range</h3>
+                <div className="mb-2 flex justify-between text-sm text-gray-600">
+                  <span>₹{priceRange[0].toLocaleString()}</span>
+                  <span>₹{priceRange[1].toLocaleString()}</span>
+                </div>
+                <div className="px-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="50000"
+                    step="1000"
+                    value={priceRange[0]}
+                    onChange={(e) =>
+                      handlePriceChange(parseInt(e.target.value), priceRange[1])
+                    }
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="50000"
+                    step="1000"
+                    value={priceRange[1]}
+                    onChange={(e) =>
+                      handlePriceChange(priceRange[0], parseInt(e.target.value))
+                    }
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-4"
+                  />
+                </div>
+                <div className="mt-4 flex justify-between gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-500 mb-1">
+                      Min
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={priceRange[1]}
+                      value={priceRange[0]}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          parseInt(e.target.value),
+                          priceRange[1]
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-500 mb-1">
+                      Max
+                    </label>
+                    <input
+                      type="number"
+                      min={priceRange[0]}
+                      max="50000"
+                      value={priceRange[1]}
+                      onChange={(e) =>
+                        handlePriceChange(
+                          priceRange[0],
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Material Filter */}
@@ -473,11 +809,16 @@ const CategoryDetailPage = () => {
                   </div>
                   <div className="space-y-2">
                     {materials.map((material) => (
-                      <div key={material.slug.current} className="flex items-center">
+                      <div
+                        key={material.slug.current}
+                        className="flex items-center"
+                      >
                         <input
                           id={`material-${material.slug.current}`}
                           type="checkbox"
-                          checked={selectedMaterials.includes(material.slug.current)}
+                          checked={selectedMaterials.includes(
+                            material.slug.current
+                          )}
                           onChange={() => toggleMaterial(material.slug.current)}
                           className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                         />
@@ -528,25 +869,21 @@ const CategoryDetailPage = () => {
                   </div>
                 </div>
               )}
-
-              {(selectedMaterials.length > 0 || selectedPaintingStyles.length > 0 || sortBy !== "featured") && (
-                <button
-                  onClick={resetFilters}
-                  className="w-full mt-4 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
-                >
-                  Reset All Filters
-                </button>
-              )}
             </div>
           </div>
 
           {/* Products Section */}
           <div className="flex-grow">
             {/* Active Filters */}
-            {(selectedMaterials.length > 0 || selectedPaintingStyles.length > 0) && (
+            {(selectedMaterials.length > 0 ||
+              selectedPaintingStyles.length > 0 ||
+              priceRange[0] !== 0 ||
+              priceRange[1] !== 50000) && (
               <div className="mb-6 flex flex-wrap gap-2">
                 {selectedMaterials.map((slug) => {
-                  const material = materials.find((m) => m.slug.current === slug);
+                  const material = materials.find(
+                    (m) => m.slug.current === slug
+                  );
                   return material ? (
                     <span
                       key={slug}
@@ -576,13 +913,27 @@ const CategoryDetailPage = () => {
                     </button>
                   </span>
                 ))}
+                {(priceRange[0] !== 0 || priceRange[1] !== 50000) && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                    ₹{priceRange[0].toLocaleString()} - ₹
+                    {priceRange[1].toLocaleString()}
+                    <button
+                      onClick={() => handlePriceChange(0, 50000)}
+                      className="ml-1.5 p-0.5 rounded-full hover:bg-gray-200"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
               </div>
             )}
 
             {/* Results Count */}
             <div className="mb-6 flex justify-between items-center">
               <p className="text-gray-600">
-                Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)} of {filteredProducts.length} products
+                Showing {indexOfFirstProduct + 1}-
+                {Math.min(indexOfLastProduct, filteredProducts.length)} of{" "}
+                {filteredProducts.length} products
               </p>
             </div>
 
@@ -607,16 +958,14 @@ const CategoryDetailPage = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {currentProducts.map((product) => {
-                    // Format dimensions
-                    const formatDimension = (dim) => {
-                      if (!dim?.value) return null;
-                      return `${dim.value}${dim?.unit?.symbol || '"'}`;
-                    };
-
-                    const height = formatDimension(product.dimensions?.height);
-                    const width = formatDimension(product.dimensions?.width);
-                    const length = formatDimension(product.dimensions?.length);
-                    const dimensions = [height, width, length].filter(Boolean).join(" × ");
+                    const price = parseFloat(
+                      product.price || product.actual_price || 0
+                    );
+                    const formattedPrice = new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                      maximumFractionDigits: 0,
+                    }).format(price);
 
                     return (
                       <Link
@@ -641,7 +990,8 @@ const CategoryDetailPage = () => {
                               </div>
                             )}
                             {product.featured && (
-                              <span className="absolute top-3 right-3 bg-primary text-white text-xs font-medium px-2 py-1 rounded-full">
+                              <span className="absolute top-3 right-3 bg-primary text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
+                                <Star className="w-3 h-3 mr-1 fill-current" />
                                 Featured
                               </span>
                             )}
@@ -653,9 +1003,7 @@ const CategoryDetailPage = () => {
                               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors mb-2">
                                 {product.name}
                               </h3>
-                              <p className="text-sm text-gray-700">
-                              Dimensions:{" "}
-                              <span className="font-medium">
+                              <p className="text-sm text-gray-700 mb-2">
                                 {[
                                   product?.dimensions?.height?.value &&
                                     `H: ${product?.dimensions.height.value}${product.dimensions.height?.unit?.symbol || '"'}`,
@@ -664,16 +1012,15 @@ const CategoryDetailPage = () => {
                                   product.dimensions?.length?.value &&
                                     `L: ${product.dimensions?.length.value}${product.dimensions.length?.unit?.symbol || '"'}`,
                                 ]
-                                  .filter(Boolean) // Remove any falsy values
+                                  .filter(Boolean)
                                   .join(" × ")}
-                              </span>
-                            </p>
+                              </p>
                             </div>
 
                             <div className="mt-auto">
                               <div className="flex items-center justify-between">
                                 <p className="text-lg font-bold text-gray-900">
-                                  {product.price}
+                                  {formattedPrice}
                                 </p>
                                 <div className="flex gap-1">
                                   {product.paintingStyle && (
@@ -695,8 +1042,13 @@ const CategoryDetailPage = () => {
                     );
                   })}
                 </div>
-
                 {/* Pagination */}
+                <div className="mt-8">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  </div>
+
                 {totalPages > 1 && (
                   <div className="mt-12 flex justify-center">
                     <nav className="flex items-center gap-1">
@@ -708,28 +1060,31 @@ const CategoryDetailPage = () => {
                         <ChevronLeft className="w-5 h-5" />
                       </button>
 
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
 
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => paginate(pageNum)}
-                            className={`w-10 h-10 flex items-center justify-center rounded-lg border ${currentPage === pageNum ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50'}`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => paginate(pageNum)}
+                              className={`w-10 h-10 flex items-center justify-center rounded-lg border ${currentPage === pageNum ? "bg-primary text-white border-primary" : "border-gray-200 hover:bg-gray-50"}`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
 
                       {totalPages > 5 && currentPage < totalPages - 2 && (
                         <span className="px-2">...</span>
@@ -738,14 +1093,16 @@ const CategoryDetailPage = () => {
                       {totalPages > 5 && currentPage < totalPages - 2 && (
                         <button
                           onClick={() => paginate(totalPages)}
-                          className={`w-10 h-10 flex items-center justify-center rounded-lg border ${currentPage === totalPages ? 'bg-primary text-white border-primary' : 'border-gray-200 hover:bg-gray-50'}`}
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg border ${currentPage === totalPages ? "bg-primary text-white border-primary" : "border-gray-200 hover:bg-gray-50"}`}
                         >
                           {totalPages}
                         </button>
                       )}
 
                       <button
-                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                        onClick={() =>
+                          paginate(Math.min(totalPages, currentPage + 1))
+                        }
                         disabled={currentPage === totalPages}
                         className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -762,5 +1119,4 @@ const CategoryDetailPage = () => {
     </div>
   );
 };
-
 export default CategoryDetailPage;

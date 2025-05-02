@@ -8,7 +8,7 @@ export default function Footer() {
         {/* Branding */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-white">
-            <span className="text-blue-400">Div</span>murti
+            <span className="text-blue-400">Jaipur</span>murtibhandar
           </h2>
           <p className="text-sm leading-relaxed">
             The official online store of <span className="font-medium text-blue-400">Jaipur Murti Bhandar</span>. 
@@ -119,21 +119,11 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Brand Connection Banner */}
-      <div className="bg-gray-800 py-4">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-sm">
-            <span className="text-blue-400 font-semibold">Divmurti</span> is the official online store of 
-            <span className="text-blue-400 font-semibold"> Jaipur Murti Bhandar</span> - 
-            bringing our temple-quality marble idols directly to your doorstep.
-          </p>
-        </div>
-      </div>
 
       {/* Copyright */}
       <div className="border-t border-gray-800 py-6">
         <div className="max-w-7xl mx-auto px-6 text-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} Divmurti & Jaipur Murti Bhandar. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Jaipur Murti Bhandar. All rights reserved.</p>
           <div className="mt-2 flex justify-center space-x-4">
             <Link href="/privacy" className="hover:text-gray-300 transition-colors duration-200">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-gray-300 transition-colors duration-200">Terms of Service</Link>

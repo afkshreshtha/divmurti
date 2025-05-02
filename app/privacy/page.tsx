@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
   return (
     <>
       <Head>
-        <title>Privacy Policy | Divmurti</title>
+        <title>Privacy Policy | Jaipurmurtibhandar</title>
         <meta name="description" content="Our privacy policy and data practices" />
       </Head>
 
@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-xl font-semibold mt-6 mb-2">Introduction</h2>
         <p className="mb-4">
-          Welcome to our handcrafted Divmurti store. We respect your privacy and are committed to protecting any information shared with us. This Privacy Policy explains our practices regarding data collection and use.
+          Welcome to our handcrafted Jaipurmurtibhandar store. We respect your privacy and are committed to protecting any information shared with us. This Privacy Policy explains our practices regarding data collection and use.
         </p>
 
         <h2 className="text-xl font-semibold mt-6 mb-2">Information We Do Not Collect</h2>
