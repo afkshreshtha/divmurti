@@ -14,7 +14,7 @@ export default function AboutPage() {
             <div className="p-8 lg:p-12 flex flex-col justify-center">
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                  Divmurti
+                  JaipurMurtiBhandar
                 </span>
               </h1>
               <p className="text-xl font-medium text-gray-700 mb-6">
@@ -36,7 +36,7 @@ export default function AboutPage() {
             <div className="relative w-full h-64 lg:h-auto order-first lg:order-last">
               <Image
                 src="/about-marble.png" // Replace with your image
-                alt="Divmurti Marble Statue"
+                alt="JaipurMurtiBhandar Marble Statue"
                 fill
                 className="object-cover"
                 priority
@@ -52,7 +52,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <div className="space-y-6">
                 <p className="text-gray-700 text-lg leading-relaxed">
-                  At <strong>Divmurti</strong>, we specialize in hand-crafted marble statues of Hindu deities, designed to bring divine energy, beauty, and tradition into your home, temple, or sacred space.
+                  At <strong>JaipurMurtiBhandar</strong>, we specialize in hand-crafted marble statues of Hindu deities, designed to bring divine energy, beauty, and tradition into your home, temple, or sacred space.
                 </p>
                 <p className="text-gray-700 text-lg leading-relaxed">
                   Based in the heart of Agra, our artisans use age-old craftsmanship combined with modern precision to sculpt each murti with devotion and attention to detail. Whether you're looking for a serene idol of Lord Ganesha, the graceful form of Lakshmi, or the divine presence of Krishna, our collection offers something special for every devotee.
@@ -165,7 +165,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Email</h3>
-                    <p className="text-gray-600">info@divmurti.com</p>
+                    <p className="text-gray-600">info@JaipuMurtiBhandar.com</p>
                   </div>
                 </div> */}
                 

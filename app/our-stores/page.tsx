@@ -26,7 +26,7 @@ export default function OurStores() {
       address: "Near Gurudwara Haathi Ghat, Agra",
       state: "Uttar Pradesh, India",
       phone: "+91 9876543210", // Replace with actual phone
-      email: "haathighat@divmurti.com", // Replace with actual email
+      email: "haathighat@JaipurMurtiBhandar.com", // Replace with actual email
       hours: "10:00 AM - 8:00 PM",
       // Using the exact coordinates from your second Google Maps link
       mapEmbedUrl: "https://maps.google.com/maps?q=27.18485,78.0235667&z=15&output=embed",
@@ -39,7 +39,7 @@ export default function OurStores() {
       address: "Opposite NEXA (KTL PVT LTD), Kuberpur",
       state: "Agra, Uttar Pradesh, India",
       phone: "+91 9876543212", // Replace with actual phone
-      email: "kuberpur@divmurti.com", // Replace with actual email
+      email: "kuberpur@JaipurMurtiBhandar.com", // Replace with actual email
       hours: "9:30 AM - 7:30 PM",
       mapEmbedUrl: "https://maps.google.com/maps?q=27.228511,78.147031&z=15&output=embed",
       mapDirectionsUrl: "https://www.google.com/maps/place/%E0%A4%95%E0%A5%81%E0%A4%AC%E0%A5%87%E0%A4%B0+%E0%A4%AE%E0%A5%82%E0%A4%B0%E0%A5%8D%E0%A4%A4%E0%A4%BF+%E0%A4%AD%E0%A4%A3%E0%A5%8D%E0%A4%A1%E0%A4%BE%E0%A4%B0/@27.228647,78.1469029,3a,75y,130.92h,93.74t/data=!3m7!1e1!3m5!1sBsQ3tFazGBDgUZ4el7M8hA!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D-3.7358623537362092%26panoid%3DBsQ3tFazGBDgUZ4el7M8hA%26yaw%3D130.9213503733858!7i13312!8i6656!4m12!1m5!3m4!2zMjfCsDEzJzQ0LjMiTiA3OMKwMDgnNDcuOCJF!8m2!3d27.228958!4d78.1466133!3m5!1s0x39746f864dd63a2d:0xe1c294e3a81b463!8m2!3d27.228511!4d78.147031!16s%2Fg%2F11vf3y153v",
@@ -51,7 +51,7 @@ export default function OurStores() {
   return (
     <>
       <Head>
-        <title>Our Stores | Divmurti - Official Website of Jaipur Murti Bhandar</title>
+        <title>Our Stores | JaipurMurtiBhandar - Official Website of Jaipur Murti Bhandar</title>
         <meta name="description" content="Visit our Jaipur Murti Bhandar stores in Agra, Jaipur, and Delhi. Experience our handcrafted marble idols in person." />
       </Head>
 
@@ -63,7 +63,7 @@ export default function OurStores() {
               Our Stores
             </h1>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-              Divmurti is the online presence of Jaipur Murti Bhandar. Visit any of our physical locations to experience our divine marble craftsmanship in person.
+              JaipurMurtiBhandar is the online presence of Jaipur Murti Bhandar. Visit any of our physical locations to experience our divine marble craftsmanship in person.
             </p>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function OurStores() {
               </div>
               
               <div className="mt-8 p-6 bg-blue-700 text-white rounded-lg shadow-lg">
-                <h3 className="font-semibold text-lg mb-2">Visit Divmurti Stores</h3>
+                <h3 className="font-semibold text-lg mb-2">Visit JaipurMurtiBhandar Stores</h3>
                 <p className="text-blue-100 mb-4">Experience our sacred marble idols in person and speak with our expert artisans.</p>
                 <a 
                   href="tel:+918273366089" 
@@ -213,11 +213,11 @@ export default function OurStores() {
       <div className="bg-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">
-            Divmurti: The Online Store of <span className="text-blue-400">Jaipur Murti Bhandar</span>
+            JaipurMurtiBhandar: The Online Store of <span className="text-blue-400">Jaipur Murti Bhandar</span>
           </h2>
           <p className="text-gray-300 max-w-3xl mx-auto">
             For over 25 years, Jaipur Murti Bhandar has been crafting divine marble sculptures. 
-            Divmurti brings this sacred art directly to your doorstep with the same quality and craftsmanship 
+            JaipurMurtiBhandar brings this sacred art directly to your doorstep with the same quality and craftsmanship 
             available at our physical locations.
           </p>
         </div>
